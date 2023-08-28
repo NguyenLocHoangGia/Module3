@@ -139,6 +139,7 @@ Insert into khach_hang(ho_ten,ngay_sinh,gioi_tinh,so_cmnd,so_dien_thoai,email,di
 values('Nguyen Van Ab', '1999-12-11', 1, '8934572323','0923467212','NVAb@gmail.com', 'Hải Phòng', 2),
 ('Nguyen Thi Ba','1998-2-12',0,'2384728412','0234682171','NTBa@gamil.com', 'Đà Nẵng',1),
 ('Nguyễn Văn Ca', '1997-4-3',1,'8234458745','0374631231','NVCa@gmail.com', 'Quảng Trị', 3);
+
 insert into loai_khach(ma_loai_khach,ten_loai_khach)
  values (1,'Diamond'),
  (2,'Platinium'),
@@ -146,8 +147,31 @@ insert into loai_khach(ma_loai_khach,ten_loai_khach)
  (4,'Silver'),
  (5,'Member');
  
+ Insert into kieu_thue(ten_kieu_thue) 
+ values('năm'),
+ ('tháng'),
+ ('ngày'),
+ ('giờ');
+ 
+ Insert into loai_dich_vu(ten_loai_dich_vu) 
+ values('Villa'),
+ ('House'),
+ ('Room');
+
+Insert into dich_vu(ten_dich_vu,dien_tich,chi_phi_thue,so_nguoi_toi_da,tieu_chuan_phong,mo_ta_tien_nghi_khac,dien_tich_ho_boi,so_tang,ma_kieu_thue,ma_loai_dich_vu) 
+values('Villa s1',10000,10000,10,'VIP','Sân vườn rộng',null,4,2,1),
+('House s1',5000,5000,8,'VIP','Có hồ bơi',100,3,2,2),
+('Room s1',3000,3000,5,'VIP', 'Có giường lớn',null,3,3,3),
+('House s2',3000,3000,5,'Thường', 'Có bãi đỗ xe trung bình',null,2,2,2);
+
 --  2.Hiển thị thông tin của tất cả nhân viên có trong hệ thống có tên bắt đầu là một trong các ký tự “H”, “T” hoặc “K” và có tối đa 15 kí tự.
  select * from nhan_vien where (ho_ten like 'H%' or ho_ten like 'T%' or ho_ten like 'K%') and length(ho_ten) <= 15;
 -- 3.Hiển thị thông tin của tất cả khách hàng có độ tuổi từ 18 đến 50 tuổi và có địa chỉ ở “Đà Nẵng” hoặc “Quảng Trị”.
   select * from khach_hang where (year(now()) - year(ngay_sinh) between 18 and 50) and (dia_chi like '%Đà Nẵng' or dia_chi like '%Quảng Trị');
-
+-- 4.Đếm xem tương ứng với mỗi khách hàng đã từng đặt phòng bao nhiêu lần. Kết quả hiển thị được sắp xếp tăng dần theo số lần đặt phòng của khách hàng. Chỉ đếm những khách hàng nào có Tên loại khách hàng là “Diamond”.
+select K.ma_khach_hang, K.ho_ten, Lk.ten_loai_khach,count(1) as so_lan_dat from hop_dong H
+ join khach_hang K on H.ma_khach_hang = K.ma_khach_hang
+ join loai_khach LK on Lk.ma_loai_khach = K.ma_loai_khach
+ where Lk.ten_loai_khach = 'Diamond'
+ group by K.ma_khach_hang, K.ho_ten, Lk.ten_loai_khach
+ order by so_lan_dat ;
