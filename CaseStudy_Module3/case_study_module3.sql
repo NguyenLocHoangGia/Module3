@@ -293,15 +293,19 @@ where hd.ma_hop_dong in (select ma_hop_dong from hop_dong where quarter(ngay_lam
 and hd.ma_hop_dong not in (select ma_hop_dong from hop_dong where month(ngay_lam_hop_dong)=6 and year(ngay_lam_hop_dong)=2021)
 group by hd.ma_hop_dong;
 
--- '13.	Hiển thị thông tin các Dịch vụ đi kèm được sử dụng nhiều nhất bởi các Khách hàng đã đặt phòng. (Lưu ý là có thể có nhiều dịch vụ có số lần sử dụng nhiều như nhau).'
-select DVDK.ma_dich_vu_di_kem, DVDK.ten_dich_vu_di_kem, sum(HDCT.so_luong) as so_luong_dich_vu_di_kem from dich_vu_di_kem DVDK
-join hop_dong_chi_tiet HDCT on DVDK.ma_dich_vu_di_kem = HDCT.ma_dich_vu_di_kem
-group by  DVDK.ma_dich_vu_di_kem
+-- '13.	Hiển thị thông tin các Dịch vụ đi kèm được sử dụng nhiều nhất bởi các Khách hàng
+-- đã đặt phòng. (Lưu ý là có thể có nhiều dịch vụ có số lần sử dụng nhiều như nhau).'
+
+select dvdk.ma_dich_vu_di_kem, dvdk.ten_dich_vu_di_kem, sum(hdct.so_luong) as so_luong_dich_vu_di_kem
+from dich_vu_di_kem dvdk 
+join hop_dong_chi_tiet hdct on dvdk.ma_dich_vu_di_kem = hdct.ma_dich_vu_di_kem
+group by ma_dich_vu_di_kem
 having so_luong_dich_vu_di_kem = (
-	select max(tong_so_lan_su_dung) from (
-		select ma_hop_dong_chi_tiet,sum(so_luong) as tong_so_lan_su_dung from hop_dong_chi_tiet
+select max (tong_so_lan_su_dung) = (
+select ma_hop_dong_chi_tiet,sum(so_luong) as tong_so_lan_su_dung from hop_dong_chi_tiet
         group by ma_hop_dong_chi_tiet
-    ) as subquery
+)
+as subquery
 );
 -- '14.	Hiển thị thông tin tất cả các Dịch vụ đi kèm chỉ mới được sử dụng một lần duy nhất. Thông tin hiển thị bao gồm ma_hop_dong, 
 -- ten_loai_dich_vu, ten_dich_vu_di_kem, so_lan_su_dung (được tính dựa trên việc count các ma_dich_vu_di_kem).'
@@ -352,3 +356,102 @@ update dich_vu_di_kem  set gia = gia *2 where ma_dich_vu_di_kem in ( select ma_d
 select ma_khach_hang as id,ho_ten,email,so_dien_thoai,ngay_sinh,dia_chi from khach_hang
 union 
 select ma_nhan_vien as id,ho_ten,email,so_dien_thoai,ngay_sinh,dia_chi from nhan_vien;
+
+-- NÂNG CAO
+-- 21.Tạo khung nhìn có tên là v_nhan_vien để lấy được thông tin của tất cả các nhân viên có địa chỉ là “Hải Châu” và đã từng
+-- lập hợp đồng cho một hoặc nhiều khách hàng bất kì với ngày lập hợp đồng là “12/12/2019”.
+
+create view v_nhan_vien as
+select * from nhan_vien nv
+where nv.dia_chi = 'Hải Châu'
+and exists(
+select 1
+from hop_dong hd
+where hd.ma_nhan_vien = nv.ma_nhan_vien
+and date(hd.ngay_lam_hop_dong) = '2019-12-12'
+);
+
+-- 22.Thông qua khung nhìn v_nhan_vien thực hiện cập nhật địa chỉ thành “Liên Chiểu” đối với tất cả các nhân viên được nhìn thấy bởi khung nhìn này.
+update v_nhan_vien
+set dia_chi = 'Liên Chiểu';
+
+-- 23.Tạo Stored Procedure sp_xoa_khach_hang dùng để xóa thông tin của một khách hàng nào đó với ma_khach_hang được truyền vào như là 1 tham số của sp_xoa_khach_hang.
+DELIMITER //
+
+CREATE PROCEDURE sp_xoa_khach_hang(IN khach_hang_id INT)
+BEGIN
+    DECLARE khach_hang_count INT;
+    
+    SELECT COUNT(*) INTO khach_hang_count FROM hop_dong WHERE ma_khach_hang = khach_hang_id;
+    
+    IF khach_hang_count = 0 THEN
+        DELETE FROM khach_hang WHERE ma_khach_hang = khach_hang_id;
+        SELECT 'Xóa khách hàng thành công!' AS result;
+    ELSE
+        SELECT 'Không thể xóa khách hàng vì tồn tại hợp đồng liên quan!' AS result;
+    END IF;
+END //
+
+DELIMITER ;
+CALL sp_xoa_khach_hang(1); 
+
+-- 24.Tạo Stored Procedure sp_them_moi_hop_dong dùng để thêm mới vào bảng hop_dong với yêu cầu
+-- sp_them_moi_hop_dong phải thực hiện kiểm tra tính hợp lệ của dữ liệu bổ sung, với nguyên
+-- tắc không được trùng khóa chính và đảm bảo toàn vẹn tham chiếu đến các bảng liên quan.
+
+DELIMITER //
+
+CREATE PROCEDURE sp_them_moi_hop_dong(
+    IN ngay_lam_hop_dong_param DATETIME,
+    IN ngay_ket_thuc_param DATETIME,
+    IN tien_dat_coc_param DOUBLE,
+    IN ma_nhan_vien_param INT,
+    IN ma_khach_hang_param INT,
+    IN ma_dich_vu_param INT
+)
+BEGIN
+    DECLARE khach_hang_count INT;
+    DECLARE nhan_vien_count INT;
+    DECLARE dich_vu_count INT;
+    
+    -- Kiểm tra xem mã khách hàng tồn tại trong bảng khach_hang
+    SELECT COUNT(*) INTO khach_hang_count FROM khach_hang WHERE ma_khach_hang = ma_khach_hang_param;
+    
+    -- Kiểm tra xem mã nhân viên tồn tại trong bảng nhan_vien
+    SELECT COUNT(*) INTO nhan_vien_count FROM nhan_vien WHERE ma_nhan_vien = ma_nhan_vien_param;
+    
+    -- Kiểm tra xem mã dịch vụ tồn tại trong bảng dich_vu
+    SELECT COUNT(*) INTO dich_vu_count FROM dich_vu WHERE ma_dich_vu = ma_dich_vu_param;
+    
+    -- Nếu mã khách hàng, mã nhân viên và mã dịch vụ đều tồn tại, thêm mới hợp đồng
+    IF khach_hang_count = 1 AND nhan_vien_count = 1 AND dich_vu_count = 1 THEN
+        INSERT INTO hop_dong(ngay_lam_hop_dong, ngay_ket_thuc, tien_dat_coc, ma_nhan_vien, ma_khach_hang, ma_dich_vu)
+        VALUES (ngay_lam_hop_dong_param, ngay_ket_thuc_param, tien_dat_coc_param, ma_nhan_vien_param, ma_khach_hang_param, ma_dich_vu_param);
+        SELECT 'Thêm mới hợp đồng thành công!' AS result;
+    ELSE
+        SELECT 'Thêm mới hợp đồng không hợp lệ! Vui lòng kiểm tra lại thông tin.' AS result;
+    END IF;
+END //
+
+DELIMITER ;
+CALL sp_them_moi_hop_dong('2023-09-06 09:00:00', '2023-09-10 12:00:00', 1000000, 1, 2, 3);
+
+-- 25.Tạo Trigger có tên tr_xoa_hop_dong khi xóa bản ghi trong bảng hop_dong thì hiển thị tổng số lượng bản ghi còn lại có trong bảng hop_dong ra giao diện console của database.
+-- Lưu ý: Đối với MySQL thì sử dụng SIGNAL hoặc ghi log thay cho việc ghi ở console.
+
+DELIMITER //
+
+CREATE TRIGGER tr_xoa_hop_dong
+AFTER DELETE ON hop_dong
+FOR EACH ROW
+BEGIN
+    DECLARE log_message VARCHAR(255);
+    
+    SET log_message = CONCAT('Bản ghi với mã hop_dong: ', OLD.ma_hop_dong, ' đã bị xóa.');
+    
+    INSERT INTO hop_dong_log (log_message) VALUES (log_message);
+END;
+//
+
+DELIMITER ;
+SELECT log_message FROM hop_dong_log;
