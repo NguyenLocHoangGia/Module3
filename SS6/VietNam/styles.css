@@ -1,0 +1,33 @@
+#wrapper {
+    max-width: 960px;
+    margin: 0px auto;
+}
+
+#header {
+    background: yellow;
+    color: red;
+    padding: 20px;
+    text-align: center;
+}
+
+#main-content {
+    display: flex;
+    min-height: 500px;
+}
+
+#content {
+    flex-basis: 70%;
+    text-align: justify;
+    line-height: 25px;
+    text-indent: 50px;
+    font-family: Arial;
+}
+
+.link {
+    color: mediumblue;
+}
+
+.super {
+    vertical-align: super;
+    font-size: 50%;
+}
