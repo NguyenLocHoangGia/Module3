@@ -28,17 +28,7 @@ header{
     border-radius: 20px;
     margin-left: 20px;
 }
-#login{
-    position: absolute;
-    top: 3%;
-    display: inline;
-    right: 50px;
-    color: white;
-}
-#login span{
-    margin-bottom: 20px;
-    margin-left: 5px;
-}
+
 #main_left_ads{
     position: absolute;
     display: inline;

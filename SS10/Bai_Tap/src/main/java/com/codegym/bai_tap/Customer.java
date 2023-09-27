@@ -1,12 +1,12 @@
 package com.codegym.bai_tap;
 
-public class ListCustomer {
+public class Customer {
     int id;
     String name;
     String DayOfBirthd;
     String address;
 
-    public ListCustomer(int id, String name, String dayOfBirthd, String address) {
+    public Customer(int id, String name, String dayOfBirthd, String address) {
         this.id = id;
         this.name = name;
         DayOfBirthd = dayOfBirthd;
