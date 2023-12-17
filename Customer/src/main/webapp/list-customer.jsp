@@ -23,13 +23,19 @@
 <body>
 
 <div class="container-fluid">
+
+    <right> <div class="input-group">
+        <div class="input-group-text" id="btnGroupAddon2">Search</div>
+        <input id="searchCustomerId"  onkeydown="a(event)" type="text" class="form-control" placeholder="Nhập tên Customer" aria-label="Nhập tên Customer" aria-describedby="btnGroupAddon2">
+    </div> </right>
+</div>
+
     <h1 class="mt-5">Customer list</h1>
     <a  role="button" class="btn btn-outline-primary mb-5" href="/customer?action=create">Add new cusomer</a>
     <table class="table table-hover">
         <thead>
         <tr>
             <td>STT</td>
-            <td>CustomerID</td>
             <th>Name</th>
             <th>Birthday</th>
             <th>Gender</th>
@@ -45,7 +51,6 @@
         <c:forEach items="${list}" var="c" varStatus="loop">
             <tr>
                 <td>${loop.count}</td>
-                <td>${c.getCustomerID()}</td>
                 <td>${c.getCustomerName()}</td>
                 <td><fmt:formatDate value="${c.getBirthday()}" pattern="dd-MM-yyyy"></fmt:formatDate></td>
 
@@ -68,6 +73,11 @@
                         Remove
                     </button>
                 </td>
+
+                <td>
+                    <a href="/customer?action=update&id=${c.getCustomerID()}"  class="btn btn-info" role="button">Edit</a>
+                </td>
+
             </tr>
         </c:forEach>
         </tbody>
@@ -76,14 +86,14 @@
 
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form action="/customer?action=delete" method="post">
+            <form action="/customer?action=delete&customer_id=${c.getCustomerID()}" method="post">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Customer</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="idDel" id="idDel">
+                        <input type="hidden" name="customerID" id="customerID">
                         Are you sure to remove <span id="nameDel" class="text-danger"></span> ?
                     </div>
                     <div class="modal-footer">
@@ -103,8 +113,18 @@
 <script>
     function sendInf(getCustomerName, getCustomerID) {
         document.getElementById("nameDel").innerText = getCustomerName;
-        document.getElementById("idDel").value = getCustomerID;
+        document.getElementById("customerID").value = getCustomerID;
+    }
+    function a(event) {
+        if (event.key === 'Enter') {
+            alert("Đã tìm thấy sinh viên ");
+            location.href = "/customer?action=search&CustomerName=" + searchCustomerId.value;
+        }
+
     }
 </script>
+
+
+
 </body>
 </html>

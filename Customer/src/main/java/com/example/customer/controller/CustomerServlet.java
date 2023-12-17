@@ -7,6 +7,7 @@ import com.example.customer.repository.Customer.ICustomerRepo;
 import com.example.customer.repository.CustomerType.CustomerTypeRepo;
 import com.example.customer.repository.CustomerType.ICustomerTypeRepo;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -34,8 +35,38 @@ private ICustomerTypeRepo iCustomerTypeRepo = new CustomerTypeRepo();
             case "create":
                 showFormCreate(req,resp);
                 break;
+            case "update":
+                showFormUpdate(req,resp);
+            case "search":
+                showFormSearch(req,resp);
             default:
                 showListCustomer(req,resp);
+        }
+    }
+
+    private void showFormSearch(HttpServletRequest req, HttpServletResponse resp) {
+    String name = req.getParameter("CustomerName");
+    List<Customer> list = iCustomerRepo.searchCustomer(name);
+
+        try {
+            req.setAttribute("list", list);
+            RequestDispatcher requestDispatcher = req.getRequestDispatcher("/list-customer.jsp");
+            requestDispatcher.forward(req,resp);
+        } catch (ServletException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showFormUpdate(HttpServletRequest req, HttpServletResponse resp) {
+        RequestDispatcher requestDispatcher = req.getRequestDispatcher("/update.jsp");
+        try {
+            requestDispatcher.forward(req,resp);
+        } catch (ServletException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -78,11 +109,20 @@ private ICustomerTypeRepo iCustomerTypeRepo = new CustomerTypeRepo();
             case "delete":
                 delete(req,resp);
                 break;
+            case "update":
+                updateCustomer(req,resp);
+        }
+    }
+
+    private void updateCustomer(HttpServletRequest req, HttpServletResponse resp) {
+        String idParam = req.getParameter("CustomerID");
+        if (idParam == null || idParam.isEmpty()){
+            return;
         }
     }
 
     private void delete(HttpServletRequest req, HttpServletResponse resp) {
-        int id = Integer.parseInt(req.getParameter("idDel"));
+        int id = Integer.parseInt(req.getParameter("customerID"));
         iCustomerRepo.deleteCustomer(id);
         try {
             resp.sendRedirect("/customer");

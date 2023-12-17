@@ -40,10 +40,12 @@ INSERT INTO Customer (
 ('Jane Doe', '1985-05-20', 0, '987654321', '9876543210', 'jane.doe@email.com', '456 Oak St', 2),
 ('Bob Smith', '1995-08-10', 1, '456789123', '4567891230', 'bob.smith@email.com', '789 Pine St', 3);
 select * from customer_type where customer_type_id = 1;
-SELECT 
-    c.*,
-    ct.customer_type_name
+SELECT *
 FROM 
     customer c
 JOIN 
     customer_type ct ON c.customer_type_id = ct.customer_type_id;
+SELECT *
+FROM customer c
+JOIN customer_type ct ON c.customer_type_id = ct.customer_type_id
+ORDER BY c.customer_id ASC;

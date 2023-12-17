@@ -8,4 +8,6 @@ public interface ICustomerRepo {
     List<Customer> showListCustomer();
     void addCustomer(Customer customer);
     void deleteCustomer(int id);
+    List<Customer> searchCustomer(String name);
+    void updateCustomer (Customer customer);
 }

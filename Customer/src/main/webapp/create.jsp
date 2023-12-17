@@ -38,7 +38,7 @@ h1{
     <div class="row">
         <div class="col-lg-2"></div>
         <div class="col-lg-8">
-            <form action="/customer?action=create" method="post" >
+            <form action="/customer?action=create" method="post" onsubmit="return validateForm(event)">
                <div class="mb-3">
                    <label for="name" class="form-label">Customer Name: </label>
                    <input type="text" required class="form-control" id="name" name="name">
@@ -46,7 +46,7 @@ h1{
 
                 <div class="mb-3">
                     <label for="date" class="form-label">Customer Brithday: </label>
-                    <input type="text" required class="form-control" id="date" name="date">
+                    <input type="date" required class="form-control" id="date" name="date">
                 </div>
 
                 <div class="mb-3">
@@ -89,9 +89,83 @@ h1{
                         </div>
                     </div>
                 </div>
+
+                <div id="error-message" class="text-danger"></div>
+
+
+
+
+                <script>
+                    function validateForm(){
+                        var name = document.getElementById('name').value;
+                        var birthday = document.getElementById('date').value;
+                        var gender = document.querySelector('input[name="gender"]:checked');
+                        var idCard = document.getElementById('idCard').value;
+                        var phone = document.getElementById('phone').value;
+                        var email = document.getElementById('email').value;
+                        var address = document.getElementById('address').value;
+                        if (!name || !birthday || !gender || !idCard || !phone || !email || !address){
+                            alert("Please fill in all fields");
+                            return false;
+                        }
+
+                        if (!/^CTM\d{5}$/.test(idCard)) {
+                            alert('ID Card must start with "CTM" followed by 5 digits.');
+                            return false;
+                        }
+
+                        if (!/^09(05|00)\d{7}$/.test(phone)) {
+                            alert('Phone number must start with "0905" or "0700" and have 10 digits.');
+                            return false;
+                        }
+
+                        if (!/^.{1,30}@gmail\.com$/.test(email)) {
+                            alert('Email must be a valid Gmail address with a maximum of 30 characters and must have gmail.com at the end');
+                            return false;
+                        }
+
+                        if (!/^.{1,50}$/.test(name)) {
+                            alert("Tên phải có từ 1 đến 50 ký tự");
+                            return false;
+                        }
+
+                        if (!gender){
+                            alert('Please select a gender.')
+                            return false;
+                        }
+
+                        var errorMessage = document.getElementById('error-message');
+                        errorMessage.innerHTML = '';
+
+                        if (!name) {
+                            errorMessage.innerHTML += 'Please enter a name.<br>';
+                        }
+                        if (!birthday) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        if (!gender) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        if (!email) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        if (!address) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        if (!idCard) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        if (!phone) {
+                            errorMessage.innerHTML += 'Please enter a birthday.<br>';
+                        }
+                        return true;
+                    }
+                </script>
+
                 <div class="mb-3 float-end">
                     <button type="submit" class="btn btn-outline-success">Create</button>
                 </div>
+
             </form>
         </div>
         <div class="col-lg-2"></div>
